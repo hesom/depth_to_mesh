@@ -17,7 +17,7 @@ DEFAULT_CAMERA = o3d.camera.PinholeCameraIntrinsic(
 
 logger = logging.getLogger(__name__)
 
-def pixel_coord_np(width, height):
+def _pixel_coord_np(width, height):
     """
     Pixel in homogenous coordinate
     Returns:
@@ -65,13 +65,13 @@ def depth_to_mesh(depth, camera=DEFAULT_CAMERA, minAngle=3.0):
     :param depth: np.array of type float32 containing the depth image
     :param camera: open3d.camera.PinholeCameraIntrinsic
     :param minAngle: Minimum angle between viewing rays and triangles in degrees
-    :returns: an open3d.geometry.TriangleMesh containing the convertes mesh
+    :returns: an open3d.geometry.TriangleMesh containing the converted mesh
     """
     
     logger.info('Reprojecting points...')
     K = camera.intrinsic_matrix
     K_inv = np.linalg.inv(K)
-    pixel_coords = pixel_coord_np(depth.shape[1], depth.shape[0])
+    pixel_coords = _pixel_coord_np(depth.shape[1], depth.shape[0])
     cam_coords = K_inv @ pixel_coords * depth.flatten()
 
     indices = o3d.utility.Vector3iVector()
