@@ -117,13 +117,8 @@ def depth_to_mesh(depth, camera=DEFAULT_CAMERA, minAngle=3.0):
     points = o3d.utility.Vector3dVector(cam_coords.transpose())
 
     mesh = o3d.geometry.TriangleMesh(points, indices)
-    mesh.compute_vertex_normals()
-    mesh.compute_triangle_normals()
-    mesh.paint_uniform_color([1, 0, 0])
-
-    frame = o3d.geometry.TriangleMesh.create_coordinate_frame(size=0.1, origin=np.array([0., 0., 0.]))
     
-    o3d.visualization.draw_geometries([mesh, frame])
+    return mesh
 
 
 if __name__ == '__main__':
@@ -148,3 +143,5 @@ if __name__ == '__main__':
         cameraMatrix = None
 
     mesh = depth_file_to_mesh(args.image, cameraMatrix, args.min_angle, args.sun3d)
+
+    o3d.io.write_triangle_mesh(args.output, mesh)
