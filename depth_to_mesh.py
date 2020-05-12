@@ -28,12 +28,13 @@ def pixel_coord_np(width, height):
     [x, y] = np.meshgrid(x, y)
     return np.vstack((x.flatten(), y.flatten(), np.ones_like(x.flatten())))
 
-def depth_file_to_mesh(image, cameraMatrix=DEFAULT_CAMERA, sun3d=False):
+def depth_file_to_mesh(image, cameraMatrix=DEFAULT_CAMERA, minAngle=3.0, sun3d=False):
     """
     Converts a depth image file into a open3d TriangleMesh object
 
     :param image: path to the depth image file
     :param cameraMatrix: numpy array of the intrinsic camera matrix
+    :param minAngle: Minimum angle between viewing rays and triangles in degrees
     :param sun3d: Specify if the depth file is in the special SUN3D format
     :returns: an open3d.geometry.TriangleMesh containing the converted mesh
     """
@@ -55,14 +56,15 @@ def depth_file_to_mesh(image, cameraMatrix=DEFAULT_CAMERA, sun3d=False):
             fx=cameraMatrix[0,0], fy=cameraMatrix[1,1],
             cx=cameraMatrix[0,2], cy=cameraMatrix[1,2]
         )
-    return depth_to_mesh(depth_raw.astype('float32'), camera)
+    return depth_to_mesh(depth_raw.astype('float32'), camera, minAngle)
 
-def depth_to_mesh(depth, camera=DEFAULT_CAMERA):
+def depth_to_mesh(depth, camera=DEFAULT_CAMERA, minAngle=3.0):
     """
     Converts an open3d.geometry.Image depth image into a open3d.geometry.TriangleMesh object
 
     :param depth: np.array of type float32 containing the depth image
     :param camera: open3d.camera.PinholeCameraIntrinsic
+    :param minAngle: Minimum angle between viewing rays and triangles in degrees
     :returns: an open3d.geometry.TriangleMesh containing the convertes mesh
     """
     
@@ -75,7 +77,6 @@ def depth_to_mesh(depth, camera=DEFAULT_CAMERA):
     indices = o3d.utility.Vector3iVector()
     w = camera.width
     h = camera.height
-    eps = 2
 
     for i in range(0, h-1):
         for j in range(0, w-1):
@@ -93,10 +94,8 @@ def depth_to_mesh(depth, camera=DEFAULT_CAMERA):
             center = (verts[0] + verts[1] + verts[2]) / 3.0
             u = center / np.linalg.norm(center)
             angle = math.degrees(math.asin(abs(np.dot(n, u))))
-            if angle < eps:
-                continue
-            
-            indices.append([w*i+j, w*(i+1)+j, w*i+(j+1)])
+            if angle > minAngle:
+                indices.append([w*i+j, w*(i+1)+j, w*i+(j+1)])
 
             verts = [
                 cam_coords[:, w*i+(j+1)],
@@ -112,9 +111,8 @@ def depth_to_mesh(depth, camera=DEFAULT_CAMERA):
             center = (verts[0] + verts[1] + verts[2]) / 3.0
             u = center / np.linalg.norm(center)
             angle = math.degrees(math.asin(abs(np.dot(n, u))))
-            if angle < eps:
-                continue
-            indices.append([w*i+(j+1),w*(i+1)+j, w*(i+1)+(j+1)])
+            if angle > minAngle:
+                indices.append([w*i+(j+1),w*(i+1)+j, w*(i+1)+(j+1)])
     
     points = o3d.utility.Vector3dVector(cam_coords.transpose())
 
@@ -135,6 +133,7 @@ if __name__ == '__main__':
     parser.add_argument('--camera', '-c', type=str, help='path to camera matrix', default=None)
     parser.add_argument('--sun3d', '-s', dest='sun3d', action='store_true', help='set if image is in SUN3D format')
     parser.add_argument('--log', '-l', type=str, help='specify logging level', default='INFO')
+    parser.add_argument('--min-angle', '-e', type=float, help='specify the minimum angle in degrees between viewing ray and triangles', default=3)
     args = parser.parse_args()
 
     numeric_level = getattr(logging, args.log.upper(), None)
@@ -148,4 +147,4 @@ if __name__ == '__main__':
     else:
         cameraMatrix = None
 
-    mesh = depth_file_to_mesh(args.image, cameraMatrix, args.sun3d)
+    mesh = depth_file_to_mesh(args.image, cameraMatrix, args.min_angle, args.sun3d)
