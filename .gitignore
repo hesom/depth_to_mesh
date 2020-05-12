@@ -2,3 +2,6 @@
 build
 bin
 example.*
+
+*.egg-info
+__pycache__
