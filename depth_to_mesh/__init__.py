@@ -119,5 +119,7 @@ def depth_to_mesh(depth, camera=DEFAULT_CAMERA, minAngle=3.0):
     points = o3d.utility.Vector3dVector(cam_coords.transpose())
 
     mesh = o3d.geometry.TriangleMesh(points, indices)
+    mesh.compute_vertex_normals()
+    mesh.compute_triangle_normals()
     
     return mesh
