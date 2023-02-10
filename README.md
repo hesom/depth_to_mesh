@@ -1,5 +1,5 @@
 # depth-to-mesh
-depth-to-mesh is a python library / command line tool to convert depth map into meshes. It uses the uniform structure of depth maps for its triangulation. Degenerate triangles are filtered out
+depth-to-mesh is a python library / command line tool to convert depth maps into meshes. It uses the uniform structure of depth maps for its triangulation. Degenerate triangles and triangles that are likely wrong, i.e. connecting foreground and background surfaces) are filtered out.
 
 ## Installation
 Simply running ```pip install depth-to-mesh``` installs all requirements
