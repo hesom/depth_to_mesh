@@ -2,7 +2,7 @@
 
 import pathlib
 import itertools
-import open3d.open3d as o3d
+import open3d as o3d
 import numpy as np
 import math
 import logging
@@ -23,12 +23,12 @@ def _pixel_coord_np(width, height):
     Returns:
         Pixel coordinate:       [3, width * height]
     """
-    x = np.linspace(0, width - 1, width).astype(np.int)
-    y = np.linspace(0, height - 1, height).astype(np.int)
+    x = np.linspace(0, width - 1, width).astype(np.int32)
+    y = np.linspace(0, height - 1, height).astype(np.int32)
     [x, y] = np.meshgrid(x, y)
     return np.vstack((x.flatten(), y.flatten(), np.ones_like(x.flatten())))
 
-def depth_file_to_mesh(image, cameraMatrix=DEFAULT_CAMERA, minAngle=3.0, sun3d=False):
+def depth_file_to_mesh(image, cameraMatrix=DEFAULT_CAMERA, minAngle=3.0, sun3d=False, depthScale=1000.0):
     """
     Converts a depth image file into a open3d TriangleMesh object
 
@@ -43,8 +43,11 @@ def depth_file_to_mesh(image, cameraMatrix=DEFAULT_CAMERA, minAngle=3.0, sun3d=F
     height = depth_raw.shape[0]
 
     if sun3d:
-        depth_raw = np.bitwise_or(depth_raw>>3, depth_raw<<13).astype('float32') / 1000.0
-    
+        depth_raw = np.bitwise_or(depth_raw>>3, depth_raw<<13)
+
+    depth_raw = depth_raw.astype('float32')
+    depth_raw /= depthScale
+
     logger.debug('Image dimensions:%s x %s', width, height)
     logger.debug('Camera Matrix:%s', cameraMatrix)
 
