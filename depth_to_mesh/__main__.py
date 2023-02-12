@@ -12,6 +12,7 @@ if __name__ == '__main__':
     parser.add_argument('--sun3d', '-s', dest='sun3d', action='store_true', help='set if image is in SUN3D format')
     parser.add_argument('--log', '-l', type=str, help='specify logging level', default='INFO')
     parser.add_argument('--min-angle', '-e', type=float, help='specify the minimum angle in degrees between viewing ray and triangles', default=3)
+    parser.add_argument('--depth-scale', '-d', type=float, help='specify the depth scale', default=1000.0)
     args = parser.parse_args()
 
     numeric_level = getattr(logging, args.log.upper(), None)
@@ -25,6 +26,6 @@ if __name__ == '__main__':
     else:
         cameraMatrix = None
 
-    mesh = depth_file_to_mesh(args.image, cameraMatrix, args.min_angle, args.sun3d)
+    mesh = depth_file_to_mesh(args.image, cameraMatrix, args.min_angle, args.sun3d, args.depth_scale)
 
     o3d.io.write_triangle_mesh(args.output, mesh)
