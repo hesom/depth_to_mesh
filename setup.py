@@ -10,7 +10,7 @@ setup(
     license='MIT',
     packages=['depth_to_mesh'],
     install_requires=[
-        'open3d',
+        'open3d>=0.18,<0.19',
         'numpy',
         'scikit-image',
         'tqdm'

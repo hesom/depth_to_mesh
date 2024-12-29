@@ -70,14 +70,13 @@ def depth_to_mesh(depth, camera=DEFAULT_CAMERA, minAngle=3.0):
     :param minAngle: Minimum angle between viewing rays and triangles in degrees
     :returns: an open3d.geometry.TriangleMesh containing the converted mesh
     """
-    
     logger.info('Reprojecting points...')
     K = camera.intrinsic_matrix
     K_inv = np.linalg.inv(K)
     pixel_coords = _pixel_coord_np(depth.shape[1], depth.shape[0])
     cam_coords = K_inv @ pixel_coords * depth.flatten()
 
-    indices = o3d.utility.Vector3iVector()
+    indices = []
     w = camera.width
     h = camera.height
 
@@ -90,6 +89,7 @@ def depth_to_mesh(depth, camera=DEFAULT_CAMERA, minAngle=3.0):
                     cam_coords[:, w*i+(j+1)],
                 ]
                 if [0,0,0] in map(list, verts):
+                    pbar.update(1)
                     continue
                 v1 = verts[0] - verts[1]
                 v2 = verts[0] - verts[2]
@@ -107,6 +107,7 @@ def depth_to_mesh(depth, camera=DEFAULT_CAMERA, minAngle=3.0):
                     cam_coords[:, w*(i+1)+(j+1)],
                 ]
                 if [0,0,0] in map(list, verts):
+                    pbar.update(1)
                     continue
                 v1 = verts[0] - verts[1]
                 v2 = verts[0] - verts[2]
@@ -119,9 +120,11 @@ def depth_to_mesh(depth, camera=DEFAULT_CAMERA, minAngle=3.0):
                     indices.append([w*i+(j+1),w*(i+1)+j, w*(i+1)+(j+1)])
                 pbar.update(1)
     
-    points = o3d.utility.Vector3dVector(cam_coords.transpose())
-
+    indices = np.array(indices, dtype=np.int32)
+    indices = o3d.utility.Vector3iVector(indices)
+    points = o3d.utility.Vector3dVector(np.ascontiguousarray(cam_coords.transpose()))
     mesh = o3d.geometry.TriangleMesh(points, indices)
+
     mesh.compute_vertex_normals()
     mesh.compute_triangle_normals()
     
