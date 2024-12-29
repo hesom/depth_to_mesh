@@ -2,7 +2,7 @@ from setuptools import setup
 
 setup(
     name='depth-to-mesh',
-    version='0.1.4',
+    version='0.1.5',
     description='Converts depth maps into triangle meshes',
     url='https://github.com/hesom/depth_to_mesh',
     author='Hendrik Sommerhoff',
